@@ -16,7 +16,7 @@ class GameControllerImpl implements GameController, Runnable{
     private final Speed speed;
     private Iterator<Food> foodIterator;
     private final UIController ui;
-    private static final int MAX_TURNS = 1000;
+    private static final int MAX_TURNS = 10000;
     private static final int MAX_WIDTH = 21;
     private static final int MAX_HEIGHT = 13;
     private int turn = 0;
@@ -92,12 +92,12 @@ class GameControllerImpl implements GameController, Runnable{
 
     private synchronized void doResolveGameTurn() throws InterruptedException {
         Thread.sleep(speed.getDelay());
-        this.resolveMovement(snakeBehavior.move(getDirectionBinaryList(
+        this.resolveMovement(snakeBehavior.move(getDirection(
                 currentCursorX,
                 currentCursorY,
                 currentFood.x(),
                 currentFood.y()
-        )));
+        ), score+1));
     }
 
     @Override
@@ -118,7 +118,7 @@ class GameControllerImpl implements GameController, Runnable{
 
     }
 
-    private int getDirectionBinaryList(int x, int y, int foodX, int foodY) {
+    private int getDirection(int x, int y, int foodX, int foodY) {
         int direction = 0;
         if (foodX < x) {
             direction |= MovementDirection.LEFT.getValue();
