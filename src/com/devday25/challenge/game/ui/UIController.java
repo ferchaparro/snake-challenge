@@ -12,9 +12,9 @@ public interface UIController {
 
         private static UIController instance;
 
-        public static UIController getInstance() {
+        public static UIController getInstance(int maxWidth, int maxHeight) {
             if (instance == null) {
-                instance = new UIControllerImpl();
+                instance = new UIControllerImpl(maxWidth, maxHeight);
             }
             return instance;
         }

@@ -8,8 +8,8 @@ class UIControllerImpl implements UIController {
 
     private final Root root;
 
-    UIControllerImpl() {
-        root = new Root();
+    UIControllerImpl(int maxWidth, int maxHeight) {
+        root = new Root(maxWidth, maxHeight);
     }
 
     @Override
@@ -18,7 +18,7 @@ class UIControllerImpl implements UIController {
     }
 
     @Override
-    public void update(UpdateState state) {
+    public synchronized void update(UpdateState state) {
         if (state == null) {
             alert("Update state is null");
             return;

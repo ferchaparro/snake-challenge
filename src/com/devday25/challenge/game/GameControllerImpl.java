@@ -1,6 +1,7 @@
 package com.devday25.challenge.game;
 
 import com.devday25.challenge.game.enums.MovementDirection;
+import com.devday25.challenge.game.enums.Speed;
 import com.devday25.challenge.game.ui.UIController;
 
 import java.io.IOException;
@@ -9,19 +10,49 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 
-class GameControllerImpl implements GameController {
+class GameControllerImpl implements GameController, Runnable{
 
     private final SnakeBehavior snakeBehavior;
+    private final Speed speed;
     private Iterator<Food> foodIterator;
     private final UIController ui;
+    private static final int MAX_TURNS = 1000;
+    private static final int MAX_WIDTH = 21;
+    private static final int MAX_HEIGHT = 13;
+    private int turn = 0;
+    private int score = 0;
+    private int[][] snake;
+    private Food currentFood;
+    private int currentCursorX;
+    private int currentCursorY;
 
-    GameControllerImpl(SnakeBehavior snakeBehavior) {
+    GameControllerImpl(SnakeBehavior snakeBehavior, Speed speed) {
         this.snakeBehavior = snakeBehavior;
-        ui = UIController.Holder.getInstance();
+        this.speed = speed;
+        currentCursorX = MAX_WIDTH / 2;
+        currentCursorY = MAX_HEIGHT / 2;
+        ui = UIController.Holder.getInstance(MAX_WIDTH, MAX_HEIGHT);
     }
 
-    public void moveSnake(MovementDirection direction) {
-        snakeBehavior.move(direction);
+    public void resolveMovement(MovementDirection direction) {
+        switch (direction) {
+            case UP -> currentCursorY--;
+            case DOWN -> currentCursorY++;
+            case LEFT -> currentCursorX--;
+            case RIGHT -> currentCursorX++;
+        }
+        try {
+            var next = snake[currentCursorX][currentCursorY];
+            if(next > 1) {
+                ui.shutdownAlert("Has perdido, tu puntaje es: " + score);
+                return;
+            }
+            snake[currentCursorX][currentCursorY] = score + 2;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            ui.shutdownAlert("Has perdido, tu puntaje es: " + score);
+            return;
+        }
+        updateSnake();
     }
 
     @Override
@@ -34,84 +65,21 @@ class GameControllerImpl implements GameController {
             if (!foodIterator.hasNext()) {
                 throw new IllegalArgumentException("El archivo no contiene informacion.");
             }
-            int[][] snake = new int[39][29];
+
+            snake = new int[MAX_WIDTH][MAX_HEIGHT];
             for (int[] ints : snake) {
                 Arrays.fill(ints, 0);
             }
-            snake[0][28] = 1;
-            snake[1][28] = 2;
-            snake[2][28] = 3;
-            snake[3][28] = 4;
-            snake[4][28] = 5;
-            snake[5][28] = 6;
-            snake[6][28] = 7;
-            snake[7][28] = 8;
-            snake[8][28] = 9;
-            snake[9][28] = 10;
-            snake[10][28] = 11;
-            snake[11][28] = 12;
-            snake[12][28] = 13;
-            snake[13][28] = 14;
-            snake[14][28] = 15;
-            snake[15][28] = 16;
-            snake[16][28] = 17;
-            snake[17][28] = 18;
-            snake[18][28] = 19;
-            snake[19][28] = 20;
-            snake[20][28] = 21;
-            snake[21][28] = 22;
-            snake[22][28] = 23;
-            snake[23][28] = 24;
-            snake[24][28] = 25;
-            snake[25][28] = 26;
-            snake[26][28] = 27;
-            snake[27][28] = 28;
-            snake[28][28] = 29;
-            snake[29][28] = 30;
-            snake[30][28] = 31;
-            snake[31][28] = 32;
-            snake[32][28] = 33;
-            snake[33][28] = 34;
-            snake[34][28] = 35;
-            snake[35][28] = 36;
-            snake[36][28] = 37;
-            snake[37][28] = 38;
-            snake[38][28] = 39;
-            snake[38][27] = 40;
-            snake[37][27] = 41;
-            snake[36][27] = 42;
-            snake[35][27] = 43;
-            snake[35][26] = 44;
-            snake[36][26] = 45;
-            snake[37][26] = 46;
-            snake[38][26] = 47;
-            snake[38][25] = 48;
-            snake[38][24] = 49;
-            snake[38][23] = 50;
-            snake[38][22] = 51;
-            snake[37][22] = 52;
-            snake[37][23] = 53;
-            snake[37][24] = 54;
-            snake[37][25] = 55;
-            snake[36][25] = 56;
-            snake[36][24] = 57;
-            snake[36][23] = 58;
-            snake[35][23] = 59;
-            snake[34][23] = 60;
-            snake[33][23] = 61;
-            snake[33][24] = 62;
-            snake[33][25] = 63;
-            snake[34][25] = 64;
-            snake[35][25] = 65;
-            snake[35][24] = 66;
-            snake[34][24] = 67;
 
             ui.update(new UpdateState(
                     snake,
-                    foodIterator.next(),
-                    12,
-                    302
+                    currentFood = foodIterator.next(),
+                    score,
+                    MAX_TURNS - turn
             ));
+
+            var thread = new Thread(this);
+            thread.start();
 
         }catch (IOException e) {
             e.printStackTrace();
@@ -122,5 +90,83 @@ class GameControllerImpl implements GameController {
         }
     }
 
-    // Aquí puedes agregar más métodos para controlar el juego, como iniciar, pausar, reiniciar, etc.
+    private synchronized void doResolveGameTurn() throws InterruptedException {
+        Thread.sleep(speed.getDelay());
+        this.resolveMovement(snakeBehavior.move(getDirectionBinaryList(
+                currentCursorX,
+                currentCursorY,
+                currentFood.x(),
+                currentFood.y()
+        )));
+    }
+
+    @Override
+    public void run() {
+        try {
+            while(turn++ < MAX_TURNS) {
+                doResolveGameTurn();
+            }
+        } catch (InterruptedException e){
+            Thread.currentThread().interrupt();
+            ui.shutdownAlert("El juego ha sido interrumpido.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            ui.shutdownAlert("Ha ocurrido un error inesperado: " + e.getMessage());
+        } finally {
+            ui.shutdownAlert("Juego terminado, tu puntaje es: " + score);
+        }
+
+    }
+
+    private int getDirectionBinaryList(int x, int y, int foodX, int foodY) {
+        int direction = 0;
+        if (foodX < x) {
+            direction |= MovementDirection.LEFT.getValue();
+        } else if (foodX > x) {
+            direction |= MovementDirection.RIGHT.getValue();
+        }
+        if (foodY < y) {
+            direction |= MovementDirection.UP.getValue();
+        } else if (foodY > y) {
+            direction |= MovementDirection.DOWN.getValue();
+        }
+        return direction;
+    }
+
+    private void updateSnake() {
+        var ateFood = false;
+        if (currentFood.x() == currentCursorX && currentFood.y() == currentCursorY) {
+            score++;
+            ateFood = true;
+            if (foodIterator.hasNext()) {
+                currentFood = foodIterator.next();
+            } else {
+                currentFood = new Food((int)(Math.random() * MAX_WIDTH), (int)(Math.random() * MAX_HEIGHT));
+            }
+        }
+        if(ateFood) {
+            ui.update(new UpdateState(
+                    snake,
+                    currentFood,
+                    score,
+                    MAX_TURNS - turn
+            ));
+            return;
+        }
+        for(int i = 0; i < snake.length; i++) {
+            for (int j = 0; j < snake[i].length; j++) {
+                if (snake[i][j] > 0) {
+                    snake[i][j]--;
+                }
+            }
+        }
+
+        ui.update(new UpdateState(
+                snake,
+                currentFood,
+                score,
+                MAX_TURNS - turn
+        ));
+
+    }
 }

@@ -9,8 +9,8 @@ class Canvas extends JPanel {
 
     private Food food;
     private int[][] snake;
-    private static final int CELL_SIZE = 20;
-    private static final int BORDER_WIDTH = 10;
+    static final int CELL_SIZE = 20;
+    static final int BORDER_WIDTH = 10;
 
     public Canvas() {
         setFocusable(true);
