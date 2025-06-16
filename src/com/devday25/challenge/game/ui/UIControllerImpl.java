@@ -8,8 +8,8 @@ class UIControllerImpl implements UIController {
 
     private final Root root;
 
-    UIControllerImpl(int maxWidth, int maxHeight) {
-        root = new Root(maxWidth, maxHeight);
+    UIControllerImpl(int maxWidth, int maxHeight, String player) {
+        root = new Root(maxWidth, maxHeight, player);
     }
 
     @Override

@@ -16,7 +16,7 @@ class GameControllerImpl implements GameController, Runnable{
     private final Speed speed;
     private Iterator<Food> foodIterator;
     private final UIController ui;
-    private static final int MAX_TURNS = 10000;
+    private static final int MAX_TURNS = 1000;
     private static final int MAX_WIDTH = 21;
     private static final int MAX_HEIGHT = 13;
     private int turn = 0;
@@ -26,12 +26,12 @@ class GameControllerImpl implements GameController, Runnable{
     private int currentCursorX;
     private int currentCursorY;
 
-    GameControllerImpl(SnakeBehavior snakeBehavior, Speed speed) {
+    GameControllerImpl(SnakeBehavior snakeBehavior, Speed speed, String player) {
         this.snakeBehavior = snakeBehavior;
         this.speed = speed;
         currentCursorX = MAX_WIDTH / 2;
         currentCursorY = MAX_HEIGHT / 2;
-        ui = UIController.Holder.getInstance(MAX_WIDTH, MAX_HEIGHT);
+        ui = UIController.Holder.getInstance(MAX_WIDTH, MAX_HEIGHT, player);
     }
 
     public void resolveMovement(MovementDirection direction) {
@@ -108,10 +108,10 @@ class GameControllerImpl implements GameController, Runnable{
             }
         } catch (InterruptedException e){
             Thread.currentThread().interrupt();
-            ui.shutdownAlert("El juego ha sido interrumpido.");
+            ui.shutdownAlert("Juego terminado, tu puntaje es: " + score);
         } catch (Exception e) {
             e.printStackTrace();
-            ui.shutdownAlert("Ha ocurrido un error inesperado: " + e.getMessage());
+            ui.shutdownAlert("Juego terminado, tu puntaje es: " + score);
         } finally {
             ui.shutdownAlert("Juego terminado, tu puntaje es: " + score);
         }

@@ -9,10 +9,10 @@ class Root extends JFrame {
 
     private final com.devday25.challenge.game.ui.Canvas canvas;
     private final ScoreBar scoreBar;
-    public Root(int maxWidth, int maxHeight) {
-        super("Snake Challaenge, Coppel DevDay 25");
+    public Root(int maxWidth, int maxHeight, String player) {
+        super("Snake Challaenge, Ferc Dev's day 2025");
         var  width = (Canvas.CELL_SIZE)*maxWidth+(Canvas.BORDER_WIDTH*2);
-        scoreBar = new ScoreBar(width);
+        scoreBar = new ScoreBar(width, player);
         canvas = new Canvas();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(width, (Canvas.CELL_SIZE)*maxHeight+ScoreBar.BAR_HEIGHT+(Canvas.BORDER_WIDTH*2) +30);

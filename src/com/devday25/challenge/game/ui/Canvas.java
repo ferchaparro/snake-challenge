@@ -22,9 +22,6 @@ class Canvas extends JPanel {
     @Override
     protected void paintComponent(java.awt.Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.WHITE);
-        drawCell(g, food.x(), food.y());
-
 
         for (int i = 0; i < snake.length; i++) {
             for(int j = 0; j < snake[i].length; j++) {
@@ -35,6 +32,9 @@ class Canvas extends JPanel {
                 }
             }
         }
+
+        g.setColor(Color.WHITE);
+        drawCell(g, food.x(), food.y());
     }
 
     public void updateCanvas(int[][] snake, Food food) {
